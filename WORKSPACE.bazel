@@ -1,0 +1,79 @@
+workspace(name = "up_and_running")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# import { http_archive } from "@bazel_tools//tools/build_defs/repo:http.bzl";
+
+# Go rules
+
+http_archive(
+    name = "io_bazel_rules_go",
+    sha256 = "d6b2513456fe2229811da7eb67a444be7785f5323c6708b38d851d2b51e54d83",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.30.0/rules_go-v0.30.0.zip",
+        "https://github.com/bazelbuild/rules_go/releases/download/v0.30.0/rules_go-v0.30.0.zip",
+    ],
+)
+
+# In the future we will use bzlmod:
+# https://docs.bazel.build/versions/main/bzlmod.html
+
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+# import { go_register_toolchains, go_rules_dependencies } from "@io_bazel_rules_go//go:deps.bzl";
+
+go_rules_dependencies()
+
+go_register_toolchains(
+    version = "1.17.6",  # Defaults to latest
+)
+
+# Gazelle is a tool for auto-creating BUILD.bazel files for Go
+# projects ("bazel run //:gazelle"). It provides a "happy path"
+# for Go projects - the BUILD files you see here were generated
+# by Gazelle, not by hand.
+
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "de69a09dc70417580aabf20a28619bb3ef60d038470c7cf8442fafcf627c21cb",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.24.0/bazel-gazelle-v0.24.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.24.0/bazel-gazelle-v0.24.0.tar.gz",
+    ],
+)
+
+# tip to see exactly what Go is installed and how it is configured:
+# bazel build @io_bazel_rules_go//:go_info
+# cat bazel-bin/external/io_bazel_rules_go/go_info.txt
+# Compare to the output of "go version"
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+# Work around issue where Gazelle only accepts the legacy name WORKSPACE.
+# https://github.com/bazelbuild/bazel-gazelle/issues/1081
+
+gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
+
+# Dependencies
+
+# tip: to update a dependency to current published version
+# bazel run //:gazelle -- update-repos github.com/mattn/go-slim
+
+go_repository(
+    name = "com_github_mattn_go_slim",
+    importpath = "github.com/mattn/go-slim",
+    sum = "h1:uGl3sfBzC84yAbUIqBCMIKLNLQrOnKvYSdRnM02okaY=",
+    version = "v0.0.2",
+)
+
+# From the rules_go documentation:
+
+# "Note that go build won't be aware of dependencies listed in WORKSPACE,
+# so you may want to download your dependencies into your GOPATH or module
+# cache so that your tools are aware of them. You may also need to check
+# in generated files."
+
+# Thus: go get github.com/mattn/go-slim
+
+# However, suitable IDE/tooling integration can instead make the
+# Bazel-loaded dependencies available for IDE use.

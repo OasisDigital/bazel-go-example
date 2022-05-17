@@ -77,3 +77,7 @@ go_repository(
 
 # However, suitable IDE/tooling integration can instead make the
 # Bazel-loaded dependencies available for IDE use.
+
+# More on Go development environment setup:
+# https://github.com/bazelbuild/rules_go/wiki/Editor-and-tool-integration
+
